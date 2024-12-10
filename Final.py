@@ -6,18 +6,12 @@ Description:    This program ... (a few sentences about your program and the que
 
 import streamlit as st
 import pandas as pd
-import os
 import matplotlib.pyplot as plt
-import random
+import pydeck as pdk
+import os
 
 def main_page():
-    def side_bar_image():
-        image_path = "fast food.jpg"
-        if os.path.exists(image_path):
-            st.sidebar.image(image_path, use_column_width=True)
-        else:
-            st.sidebar.warning(f"Image file not found: {image_path}")
-
+    
     def data_source_page():
         st.title("Fast Food Restaurants in the US")
         st.header("Dataset Overview")
@@ -44,37 +38,7 @@ import streamlit as st
 import pandas as pd
 import os
 
-def main_page():
-    def side_bar_image():
-        image_path = "fast food.jpg"
-        if os.path.exists(image_path):
-            st.sidebar.image(image_path, use_column_width=True)
-        else:
-            st.sidebar.warning(f"Image file not found: {image_path}")
-
-    def data_source_page():
-        st.title("Fast Food Restaurants in the US")
-        st.header("Dataset Overview")
-        st.markdown("""
-        **Title:** Fast food restaurants  
-        **Type:** Geospatial: In the US  
-        **Description:** This dataset includes comprehensive information about fast food restaurants across the US, 
-        with certain filtering features 
-        that shows the names of the chains and areas. 
-        """)
-        st.header("About the Dataset")
-        st.markdown("""
-        The "Fast Food USA" dataset provides geospatial data on fast food restaurants across the states. 
-        This information helps visualize what states have what chains of fast food restaurants and vice versa.
-        """)
-
-    def run():
-        side_bar_image()
-        data_source_page()
-
-    run()
-
-def page2():
+def page2(): # queries and pivot tables
     @st.cache_data
     def load_data():
         path = "/Users/yuueno/Library/CloudStorage/OneDrive-BentleyUniversity/pythonProject/Final Projects/fast_food_usa.csv"
@@ -88,6 +52,7 @@ def page2():
             st.error(f"CSV file not found at: {path}")
             return pd.DataFrame()  # Return an empty DataFrame
 
+    # [ST 1] a text box that allows user to enter state 
     def State_text_box():
         st.title("Fast food chains by state")
         df = load_data()
@@ -102,7 +67,8 @@ def page2():
             st.table(results_df)
         else:
             st.write("Please enter a state code above.")
-
+    
+    # [PY 2] This function returns two values, the number of chains and the percentage of the chains based on the top 10 
     def chain_counts():
         df = load_data()
         if df.empty:
@@ -130,7 +96,8 @@ def page2():
             st.dataframe(results_df)
         else:
             st.write("No data to display.")
-
+    
+    # [PY 2] this returns the number of chains found in Waltham across the US
     def waltham_chains(data, column_name="name"):
         if data.empty:
             return
@@ -158,16 +125,14 @@ def page2():
         waltham_chains(data=load_data())
 
     run()
-
-# Assuming you have a Streamlit multipage setup, you would call the pages like this:
+    
 main_page()
 page2()
 
 
 
-
-
-def page3():
+def page3(): # map
+import pydeck as pdk
     # Load the data
     file_path = '/Users/yuueno/Library/CloudStorage/OneDrive-BentleyUniversity/pythonProject/Final Projects/fast_food_usa.csv'
 
@@ -184,9 +149,11 @@ def page3():
             [255, 0, 255, 160], [0, 255, 255, 160], [128, 0, 0, 160], [128, 128, 0, 160],
             [0, 128, 0, 160], [128, 0, 128, 160], [0, 128, 128, 160], [0, 0, 128, 160],
         ]
+        # [PY 4] Lists comprehension that correlates the chains with correct color 
         color_map = {name: colors[i % len(colors)] for i, name in enumerate(unique_names)}
         return color_map
-
+    
+    [VIZ 1] Scatter plot map
     # Map display logic
     def show_fast_food_map(data):
         # Dropdown to filter by state
@@ -268,63 +235,129 @@ def page3():
 
     main()
     return
-def page4():
-    # Function to generate random colors for the chart
-    def generate_random_colors(num_colors):
-        return [(random.random(), random.random(), random.random()) for _ in range(num_colors)]
 
-    # Caching the data read function for faster loading
-    @st.cache_data
-    def read_data():
-        df = pd.read_csv(
-            "/Users/yuueno/Library/CloudStorage/OneDrive-BentleyUniversity/pythonProject/Final Projects/fast_food_usa.csv")
-        return df
+def page4(): # data information 
+import matplotlib.pyplot as plt
+import random
+#[ST 2] Dropdown to select a state and shows the chains from that state 
+#[PY 4] this function changes the color of the bars in the bar chart 
+# Function to generate random colors for the chart
+def generate_random_colors(num_colors):
+    return [(random.random(), random.random(), random.random()) for _ in range(num_colors)]
 
-    # Plotting the bar chart of fast food chains by province (state)
-    def interactive_bar_chart(data):
-        # Dropdown to select province (state) sorted alphabetically
-        provinces = sorted(data['province'].unique())  # Sort the provinces alphabetically
-        selected_province = st.selectbox('Select a Province (State):', provinces)  # Reference the 'province' column
-        filtered_data = data[data['province'] == selected_province]
 
-        # Count occurrences of each fast food chain
-        chain_counts = filtered_data['name'].value_counts().reset_index()
-        chain_counts.columns = ['Chain Name', 'Count']
-        chain_counts = chain_counts.sort_values(by='Count', ascending=False)  # Sort in descending order (most to least)
+# Caching the data read function for faster loading
+@st.cache_data
+def read_data():
+    df = pd.read_csv("/Users/yuueno/Library/CloudStorage/OneDrive-BentleyUniversity/pythonProject/Final Projects/fast_food_usa.csv")
+    return df
+#[DA 2] sort in ascending order 
+#[DA 1] cleaning and sorting data into a bar chart
+#[VIZ 2] Bar charts based on selected state  
+# Plotting the bar chart of fast food chains by province (state)
+def interactive_bar_chart(data):
+    # Dropdown to select province (state) sorted alphabetically
+    provinces = sorted(data['province'].unique())  # Sort the provinces alphabetically
+    selected_province = st.selectbox('Select a Province (State):', provinces)  # Reference the 'province' column
+    filtered_data = data[data['province'] == selected_province]
 
-        st.subheader(f'Fast Food Chains in {selected_province}')
-        st.markdown("### Bar Chart Showing Count of Fast Food Chains")
+    # Count occurrences of each fast food chain
+    chain_counts = filtered_data['name'].value_counts().reset_index()
+    chain_counts.columns = ['Chain Name', 'Count']
+    chain_counts = chain_counts.sort_values(by='Count', ascending=False)  # Sort in descending order (most to least)
 
-        # Generate a bar chart with random colors
-        if not chain_counts.empty:
-            fig, ax = plt.subplots(figsize=(10, 6))
-            colors = generate_random_colors(len(chain_counts))
-            ax.bar(chain_counts['Chain Name'], chain_counts['Count'], color=colors)
-            ax.set_ylabel('Count')
-            ax.set_xlabel('Chain Name')
-            ax.set_title(f'Fast Food Chain Counts in {selected_province}')
-            ax.set_xticklabels(chain_counts['Chain Name'], rotation=45, ha='right')
-            st.pyplot(fig)
-        else:
-            st.write(f"No data available for the selected province: {selected_province}")
+    st.subheader(f'Fast Food Chains in {selected_province}')
+    st.markdown("### Bar Chart Showing Count of Fast Food Chains")
 
-        # Display detailed data in a table
-        if not chain_counts.empty:
-            st.write("### Detailed Data Table")
-            st.dataframe(chain_counts)
-        else:
-            st.write("No data to display in the table.")
+    # Generate a bar chart with random colors
+    if not chain_counts.empty:
+        fig, ax = plt.subplots(figsize=(10, 6))
+        colors = generate_random_colors(len(chain_counts))
+        ax.bar(chain_counts['Chain Name'], chain_counts['Count'], color=colors)
+        ax.set_ylabel('Count')
+        ax.set_xlabel('Chain Name')
+        ax.set_title(f'Fast Food Chain Counts in {selected_province}')
+        ax.set_xticklabels(chain_counts['Chain Name'], rotation=45, ha='right')
+        st.pyplot(fig)
+    else:
+        st.write(f"No data available for the selected province: {selected_province}")
 
-    def main():
-        st.title('Fast Food Chains in the USA')
+    # Display detailed data in a table
+    if not chain_counts.empty:
+        st.write("### Detailed Data Table")
+        st.dataframe(chain_counts)
+    else:
+        st.write("No data to display in the table.")
+#[DA 1] cleaning and sorting data into a bar chart
+#[DA 2] sort in ascending order 
+#[VIZ 3] Bar charts showing top 10 chains
 
-        # Load the data
-        data = read_data()
+# Function to display the top 10 fast food chains across the USA
+def top_10_chains_bar_chart(data):
+    st.subheader("Top 10 Fast Food Chains in the USA")
+    st.markdown("### Bar Chart Showing the Top 10 Chains by Count")
 
-        # Call the interactive bar chart function
-        interactive_bar_chart(data)
+    # Count occurrences of each fast food chain in the entire dataset
+    chain_counts = data['name'].value_counts().head(10).reset_index()
+    chain_counts.columns = ['Chain Name', 'Count']
 
-    main()
+    # Generate a bar chart with random colors
+    fig, ax = plt.subplots(figsize=(10, 6))
+    colors = generate_random_colors(len(chain_counts))
+    ax.bar(chain_counts['Chain Name'], chain_counts['Count'], color=colors)
+    ax.set_ylabel('Count')
+    ax.set_xlabel('Chain Name')
+    ax.set_title('Top 10 Fast Food Chains in the USA')
+    ax.set_xticklabels(chain_counts['Chain Name'], rotation=45, ha='right')
+    st.pyplot(fig)
+#[DA 1]cleaning and sorting data into a bar chart
+#[DA 2] sort in ascending order 
+#[ST 3] Dropdowns for chains 
+#[VIZ 4] Bar charts based on selected chains 
+# Function to display an interactive bar chart for selected chain across states
+def chain_distribution_bar_chart(data):
+    st.subheader("Fast Food Chain Distribution by State")
+    st.markdown("### Bar Chart Showing Selected Chain's Count Across States")
+
+    # Dropdown to select a chain
+    chains = sorted(data['name'].unique())  # Sort the chains alphabetically
+    selected_chain = st.selectbox('Select a Chain:', chains)  # Reference the 'name' column
+    filtered_data = data[data['name'] == selected_chain]
+
+    # Count occurrences of the selected chain in each state
+    state_counts = filtered_data['province'].value_counts().reset_index()
+    state_counts.columns = ['State', 'Count']
+    state_counts = state_counts.sort_values(by='Count', ascending=False)  # Sort in descending order (most to least)
+
+    # Generate a bar chart with random colors
+    fig, ax = plt.subplots(figsize=(10, 6))
+    colors = generate_random_colors(len(state_counts))
+    ax.bar(state_counts['State'], state_counts['Count'], color=colors)
+    ax.set_ylabel('Count')
+    ax.set_xlabel('State')
+    ax.set_title(f'{selected_chain} Distribution Across States')
+    ax.set_xticklabels(state_counts['State'], rotation=45, ha='right')
+    st.pyplot(fig)
+
+
+# Main function
+def main():
+    st.title('Fast Food Chains in the USA')
+
+    # Load the data
+    data = read_data()
+
+    # Call the interactive bar chart function
+    interactive_bar_chart(data)
+
+    # Call the top 10 chains bar chart function
+    top_10_chains_bar_chart(data)
+
+    # Call the chain distribution bar chart function
+    chain_distribution_bar_chart(data)
+
+
+main()
 
 def main():
     pages_dict = {
