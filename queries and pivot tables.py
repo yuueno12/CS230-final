@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import os
 
-def page2(): #queries and pivot tables
+def page2():#queries and pivot tables
     @st.cache_data
     def load_data():
         path = "/Users/yuueno/Library/CloudStorage/OneDrive-BentleyUniversity/pythonProject/Final Projects/fast_food_usa.csv"
@@ -16,6 +16,8 @@ def page2(): #queries and pivot tables
             st.error(f"CSV file not found at: {path}")
             return pd.DataFrame()  # Return an empty DataFrame
 
+    # [ST 3] a text box that allows users to enter a State
+    # returns a table with a total count of fast food restaurants in selected state
     def State_text_box():
         st.title("Fast food chains by state")
         df = load_data()
@@ -26,11 +28,14 @@ def page2(): #queries and pivot tables
                 'State Code': [province_name.upper()],
                 'Total Count': [count]
             })
-            st.write("### Total number of fast food restaurant in state")
+            st.write("### Total number of fast food restaurants in state")
             st.table(results_df)
         else:
             st.write("Please enter a state code above.")
 
+    # [PY 2] returns two values based on the top 10 list: total count of a specific chain and the percentage out of the total data entries
+    # [DA 3] find top data in a certain column (name/count)
+    # [DA 2] Sort data in descending order
     def chain_counts():
         df = load_data()
         if df.empty:
@@ -59,6 +64,9 @@ def page2(): #queries and pivot tables
         else:
             st.write("No data to display.")
 
+    # [PY 1] two parameters: dataset and the columns (chains found in waltham)
+    # [DA 4] filters data by one condition
+    # then filters it out and gives an output of the total count of chains with the expected value across the US
     def waltham_chains(data, column_name="name"):
         if data.empty:
             return
@@ -86,5 +94,3 @@ def page2(): #queries and pivot tables
         waltham_chains(data=load_data())
 
     run()
-
-page2()
